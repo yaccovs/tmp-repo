@@ -3,56 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>מקלדת חצי-חצי משופרת</title>
+    <title>מקלדת חצי-חצי - גרסת מקלדת פיזית</title>
     <style>
-        body { font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background-color: #f0f0f0; overflow: hidden; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background-color: #f0f0f0; overflow: hidden; }
         
-        #output { font-size: 4rem; margin-bottom: 20px; height: 1.3em; border-bottom: 3px solid #333; min-width: 300px; text-align: center; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); word-break: break-all; display: flex; align-items: center; justify-content: center; }
+        #output { font-size: 4rem; margin-bottom: 20px; min-height: 1.2em; border-bottom: 3px solid #333; min-width: 300px; text-align: center; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); direction: rtl; }
         
-        .container { display: flex; width: 95%; height: 65vh; gap: 20px; }
+        .container { display: flex; width: 95%; height: 55vh; gap: 20px; }
         
-        .half-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: none; border-radius: 30px; transition: transform 0.1s, background-color 0.3s; color: white; box-shadow: 0 6px 20px rgba(0,0,0,0.15); cursor: pointer; }
+        .half-btn { 
+            flex: 1; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            border: none; 
+            border-radius: 20px; 
+            transition: transform 0.1s, background-color 0.3s; 
+            color: white; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+            cursor: pointer;
+            overflow: hidden;
+            padding: 10px;
+            text-align: center;
+        }
         
         .right { background-color: #4CAF50; }
         .left { background-color: #2196F3; }
         
-        .half-btn.active { transform: scale(0.96); filter: brightness(1.2); }
+        .half-btn.active { transform: scale(0.97); filter: brightness(1.1); }
         
-        /* הגדלת האותיות בתוך הלחצן */
+        /* עיצוב האותיות שימלאו את הריבוע */
         .letters-display { 
-            font-size: 6rem; /* גודל ענק */
-            font-weight: bold;
+            font-weight: bold; 
+            line-height: 1.1; 
+            word-break: break-all;
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 10px;
-            padding: 20px;
-            line-height: 1;
+            align-items: center;
+            height: 100%;
+            width: 100%;
         }
 
-        /* התאמה למילים ארוכות כמו "רווח" */
-        .special-char { font-size: 3rem; vertical-align: middle; }
-        
-        .controls { margin-top: 20px; display: flex; gap: 15px; }
-        
-        button.tool-btn { padding: 12px 25px; font-size: 1.2rem; cursor: pointer; border-radius: 10px; border: none; background: #666; color: white; transition: background 0.2s; }
-        button.tool-btn:hover { background: #444; }
+        .action-bar {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            width: 90%;
+            justify-content: center;
+        }
 
+        .action-btn {
+            padding: 15px 30px;
+            font-size: 1.5rem;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: transform 0.1s;
+        }
+        
+        .btn-space { background-color: #ff9800; flex: 2; }
+        .btn-delete { background-color: #f44336; flex: 1; }
+        .btn-reset { background-color: #607d8b; flex: 1; }
+
+        .action-btn:active { transform: scale(0.95); }
+
+        /* הגדרות */
         #settingsPanel {
             position: fixed; top: 10px; right: 10px; background: white; padding: 15px;
             border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.2); z-index: 100;
             display: none; flex-direction: column; gap: 10px; border: 1px solid #ccc;
         }
-        .instruction { font-size: 1.1rem; color: #444; margin-top: 15px; text-align: center; font-weight: bold; }
+        .instruction { font-size: 1rem; color: #555; margin-top: 15px; text-align: center; }
     </style>
 </head>
 <body>
 
     <div id="settingsPanel">
-        <strong>הגדרות</strong>
+        <strong>הגדרות מקלדת</strong>
         <label>זמן לחיצה כפולה (מ"ש):</label>
         <input type="number" id="delayInput" value="400" step="50" style="width: 60px;">
-        <button class="tool-btn" onclick="toggleSettings()">סגור</button>
+        <button onclick="toggleSettings()">סגור</button>
     </div>
 
     <div id="output"></div>
@@ -66,21 +99,21 @@
         </button>
     </div>
 
-    <div class="controls">
-        <button class="tool-btn" onclick="resetSearch()">התחל אות חדשה (Esc)</button>
-        <button class="tool-btn" onclick="toggleSettings()">⚙️ הגדרות</button>
+    <div class="action-bar">
+        <button class="action-btn btn-reset" onclick="resetSearch()">איפוס (Esc)</button>
+        <button class="action-btn btn-space" onclick="handleSpace()">רווח ␣</button>
+        <button class="action-btn btn-delete" onclick="handleDelete()">מחק ⌫</button>
+        <button style="background:none; border:none; color:#999; cursor:pointer;" onclick="toggleSettings()">⚙️</button>
     </div>
 
     <div class="instruction">
-        הקשה אחת ⬅️ צד ירוק | שתי הקשות מהירות ⬅️ צד כחול
+        לחיצה אחת: צד ימין | לחיצה כפולה: צד שמאל
     </div>
 
     <script>
-        // רשימת התווים כולל רווח ומחיקה
-        const charLabels = { "SPACE": "רווח", "BACK": "⌫" };
-        const allLetters = ["א", "ב", "ג", "ד", "ה", "ו", "ז", "ח", "ט", "י", "כ", "ל", "מ", "נ", "ס", "ע", "פ", "צ", "ק", "ר", "ש", "ת", "SPACE", "BACK"];
-        
+        const allLetters = ["א", "ב", "ג", "ד", "ה", "ו", "ז", "ח", "ט", "י", "כ", "ל", "מ", "נ", "ס", "ע", "פ", "צ", "ק", "ר", "ש", "ת"];
         let currentRange = [...allLetters];
+        
         let clickTimer = null;
 
         function updateDisplay() {
@@ -88,56 +121,37 @@
             const rightHalf = currentRange.slice(0, mid);
             const leftHalf = currentRange.slice(mid);
 
-            renderHalf('displayRight', rightHalf);
-            renderHalf('displayLeft', leftHalf);
+            const displayRight = document.getElementById('displayRight');
+            const displayLeft = document.getElementById('displayLeft');
+
+            displayRight.innerText = rightHalf.join(' ');
+            displayLeft.innerText = leftHalf.join(' ');
+
+            // לוגיקה לשינוי גודל פונט דינמי כדי למלא את הריבוע
+            const setFontSize = (element, arrLength) => {
+                if (arrLength <= 2) element.style.fontSize = "15rem";
+                else if (arrLength <= 6) element.style.fontSize = "8rem";
+                else if (arrLength <= 12) element.style.fontSize = "5rem";
+                else element.style.fontSize = "3rem";
+            };
+
+            setFontSize(displayRight, rightHalf.length);
+            setFontSize(displayLeft, leftHalf.length);
 
             if (currentRange.length === 1) {
-                handleSelection(currentRange[0]);
-                // אפקט ויזואלי
-                document.body.style.backgroundColor = "#fff";
-                setTimeout(() => { document.body.style.backgroundColor = "#f0f0f0"; }, 200);
-                setTimeout(resetSearch, 400);
-            }
-        }
-
-        function renderHalf(elementId, chars) {
-            const container = document.getElementById(elementId);
-            container.innerHTML = '';
-            chars.forEach(char => {
-                const span = document.createElement('span');
-                if (charLabels[char]) {
-                    span.innerText = charLabels[char];
-                    span.className = 'special-char';
-                } else {
-                    span.innerText = char;
-                }
-                container.appendChild(span);
-            });
-        }
-
-        function handleSelection(char) {
-            const output = document.getElementById('output');
-            let text = output.innerText;
-
-            if (char === "BACK") {
-                output.innerText = text.slice(0, -1);
-            } else if (char === "SPACE") {
-                // בדיקת אותיות סופיות
-                const sofiotMap = { 'כ': 'ך', 'מ': 'ם', 'נ': 'ן', 'פ': 'ף', 'צ': 'ץ' };
-                const lastChar = text.slice(-1);
+                document.getElementById('output').innerText += currentRange[0];
                 
-                if (sofiotMap[lastChar]) {
-                    output.innerText = text.slice(0, -1) + sofiotMap[lastChar] + " ";
-                } else {
-                    output.innerText += " ";
-                }
-            } else {
-                output.innerText += char;
+                // אפקט ויזואלי קטן לבחירה
+                document.body.style.backgroundColor = "#e8f5e9";
+                setTimeout(() => { document.body.style.backgroundColor = "#f0f0f0"; }, 150);
+                
+                setTimeout(resetSearch, 200);
             }
         }
 
         function chooseHalf(index) {
             if (currentRange.length <= 1) return;
+
             const mid = Math.ceil(currentRange.length / 2);
             if (index === 0) {
                 currentRange = currentRange.slice(0, mid);
@@ -160,25 +174,79 @@
             updateDisplay();
         }
 
+        // --- פונקציות חדשות ---
+
+        function handleSpace() {
+            const output = document.getElementById('output');
+            let text = output.innerText;
+            
+            // המרה לאותיות סופיות (מנצפ"ך)
+            if (text.length > 0) {
+                let lastChar = text.slice(-1);
+                const sofiotMap = {
+                    'מ': 'ם',
+                    'נ': 'ן',
+                    'צ': 'ץ',
+                    'פ': 'ף',
+                    'כ': 'ך'
+                };
+                
+                if (sofiotMap[lastChar]) {
+                    // החלף את האות האחרונה בסופית
+                    text = text.slice(0, -1) + sofiotMap[lastChar];
+                }
+            }
+
+            output.innerText = text + " "; // הוסף רווח
+            resetSearch(); // אפס את החיפוש אם היה באמצע
+        }
+
+        function handleDelete() {
+            const output = document.getElementById('output');
+            output.innerText = output.innerText.slice(0, -1);
+            resetSearch();
+        }
+
         function toggleSettings() {
             const panel = document.getElementById('settingsPanel');
             panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
         }
 
+        // האזנה למקלדת הפיזית
         window.addEventListener('keydown', function(e) {
             if (e.repeat) return;
-            if (e.key === "Escape") { resetSearch(); return; }
+
+            // טיפול במקשים מיוחדים
+            if (e.key === "Escape") {
+                resetSearch();
+                return;
+            }
+            if (e.key === "Backspace") {
+                handleDelete();
+                animateBtn('btnLeft'); // אפקט ויזואלי לביטול
+                return;
+            }
+            if (e.key === " " || e.key === "Spacebar") {
+                e.preventDefault(); // מניעת גלילת דף
+                handleSpace();
+                animateBtn('btnRight'); // אפקט ויזואלי לרווח
+                return;
+            }
+
             if (e.target.tagName === "INPUT") return;
 
+            // לוגיקת חצי-חצי (כל מקש אחר)
             const doubleClickDelay = parseInt(document.getElementById('delayInput').value) || 400;
 
             if (clickTimer) {
+                // לחיצה כפולה
                 clearTimeout(clickTimer);
                 clickTimer = null;
-                chooseHalf(1); // לחיצה כפולה -> חצי כחול (שמאל)
+                chooseHalf(1); // חצי שני
             } else {
+                // לחיצה ראשונה
                 clickTimer = setTimeout(() => {
-                    chooseHalf(0); // לחיצה בודדת -> חצי ירוק (ימין)
+                    chooseHalf(0); // חצי ראשון
                     clickTimer = null;
                 }, doubleClickDelay);
             }
