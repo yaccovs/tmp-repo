@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>מקלדת חצי-חצי עם סופיות</title>
+    <title>מקלדת חצי-חצי משולבת</title>
     <style>
         body { 
             font-family: Arial, sans-serif; 
@@ -14,6 +14,7 @@
             height: 100vh; 
             margin: 0; 
             background-color: #f0f0f0; 
+            overflow: hidden; /* למניעת גלילה בגלל גודל פונט */
         }
 
         #output { 
@@ -32,7 +33,7 @@
         .container { 
             display: flex; 
             width: 95%; 
-            height: 50vh; 
+            height: 70vh; /* הגדלתי את גובה הכפתורים */
             gap: 15px; 
         }
 
@@ -48,6 +49,7 @@
             color: white; 
             box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
             padding: 10px;
+            overflow: hidden;
         }
 
         .right { background-color: #4CAF50; }
@@ -55,40 +57,37 @@
         
         .half-btn:active { transform: scale(0.98); }
 
-        /* הגדלת האותיות כדי שימלאו את הריבוע */
+        /* עיצוב הטקסט בתוך הכפתורים */
         .letters-display { 
-            font-size: clamp(2rem, 5vw, 4rem); /* גודל דינמי וגדול */
+            font-size: clamp(1.5rem, 4vw, 3.5rem); 
             font-weight: bold;
-            word-break: break-word; 
-            line-height: 1.2;
             text-align: center;
-        }
-
-        .controls {
+            line-height: 1.4;
             display: flex;
-            gap: 10px;
-            margin-top: 20px;
-            width: 95%;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            width: 100%;
         }
 
-        .control-btn { 
-            padding: 15px; 
-            font-size: 1.2rem; 
+        /* עיצוב מיוחד לפעולות כדי שיבלטו בתוך רשימת האותיות */
+        .action-item {
+            color: #FFEB3B; /* צהוב */
+            text-shadow: 1px 1px 2px black;
+            font-weight: 900;
+        }
+
+        .reset-btn { 
+            margin-top: 20px; 
+            padding: 10px 20px; 
+            font-size: 1rem; 
             cursor: pointer; 
-            border-radius: 10px; 
+            border-radius: 5px; 
             border: none; 
+            background: #607D8B; 
             color: white; 
-            flex: 1;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            transition: opacity 0.2s;
+            opacity: 0.7;
         }
-
-        .control-btn:active { opacity: 0.8; }
-
-        .btn-space { background-color: #9C27B0; flex: 2; } /* רווח רחב יותר */
-        .btn-delete { background-color: #F44336; }
-        .btn-reset { background-color: #607D8B; }
-
     </style>
 </head>
 <body>
@@ -104,15 +103,12 @@
         </button>
     </div>
 
-    <div class="controls">
-        <button class="control-btn btn-reset" onclick="resetSearch()">איפוס חיפוש</button>
-        <button class="control-btn btn-space" onclick="addSpace()">רווח</button>
-        <button class="control-btn btn-delete" onclick="deleteLastChar()">מחק אות</button>
-    </div>
+    <button class="reset-btn" onclick="resetSearch()">התחל אות חדשה (איפוס)</button>
 
     <script>
-        const allLetters = ["א", "ב", "ג", "ד", "ה", "ו", "ז", "ח", "ט", "י", "כ", "ל", "מ", "נ", "ס", "ע", "פ", "צ", "ק", "ר", "ש", "ת"];
-        // מיפוי לאותיות סופיות
+        // האותיות + הפעולות כחלק אינטגרלי מהרשימה
+        const baseItems = ["א", "ב", "ג", "ד", "ה", "ו", "ז", "ח", "ט", "י", "כ", "ל", "מ", "נ", "ס", "ע", "פ", "צ", "ק", "ר", "ש", "ת", "רווח", "מחק"];
+        
         const sofitMap = {
             'מ': 'ם',
             'נ': 'ן',
@@ -121,20 +117,58 @@
             'כ': 'ך'
         };
 
-        let currentRange = [...allLetters];
+        let currentRange = [...baseItems];
+
+        // פונקציה שמייצרת HTML כדי להבליט את המילים רווח ומחק
+        function formatList(list) {
+            return list.map(item => {
+                if (item === "רווח" || item === "מחק") {
+                    return `<span class="action-item">${item}</span>`;
+                }
+                return item;
+            }).join(' ');
+        }
 
         function updateDisplay() {
             const mid = Math.ceil(currentRange.length / 2);
             const rightHalf = currentRange.slice(0, mid);
             const leftHalf = currentRange.slice(mid);
 
-            document.getElementById('displayRight').innerText = rightHalf.join(' ');
-            document.getElementById('displayLeft').innerText = leftHalf.join(' ');
+            // שימוש ב-innerHTML כדי לאפשר עיצוב שונה לרווח ומחק
+            document.getElementById('displayRight').innerHTML = formatList(rightHalf);
+            document.getElementById('displayLeft').innerHTML = formatList(leftHalf);
 
+            // בדיקה אם נשאר פריט אחד בלבד
             if (currentRange.length === 1) {
-                document.getElementById('output').innerText += currentRange[0];
-                setTimeout(resetSearch, 200); // איפוס מהיר יותר
+                handleSelection(currentRange[0]);
             }
+        }
+
+        function handleSelection(item) {
+            const output = document.getElementById('output');
+            
+            if (item === "מחק") {
+                // לוגיקת מחיקה
+                output.innerText = output.innerText.slice(0, -1);
+            } 
+            else if (item === "רווח") {
+                // לוגיקת רווח + מנצפ"ך
+                let text = output.innerText;
+                if (text.length > 0) {
+                    const lastChar = text[text.length - 1];
+                    if (sofitMap[lastChar]) {
+                        text = text.slice(0, -1) + sofitMap[lastChar];
+                    }
+                }
+                output.innerText = text + " ";
+            } 
+            else {
+                // הוספת אות רגילה
+                output.innerText += item;
+            }
+
+            // איפוס אוטומטי מהיר
+            setTimeout(resetSearch, 200);
         }
 
         function chooseHalf(index) {
@@ -148,33 +182,8 @@
         }
 
         function resetSearch() {
-            currentRange = [...allLetters];
+            currentRange = [...baseItems];
             updateDisplay();
-        }
-
-        function deleteLastChar() {
-            const output = document.getElementById('output');
-            output.innerText = output.innerText.slice(0, -1);
-            resetSearch(); // אופציונלי: מאפס את החיפוש כשמוחקים
-        }
-
-        function addSpace() {
-            const output = document.getElementById('output');
-            let text = output.innerText;
-            
-            // בדיקה אם יש טקסט כדי לבצע המרה לאות סופית
-            if (text.length > 0) {
-                const lastChar = text[text.length - 1];
-                
-                // אם האות האחרונה קיימת במילון הסופיות, נחליף אותה
-                if (sofitMap[lastChar]) {
-                    text = text.slice(0, -1) + sofitMap[lastChar];
-                }
-            }
-
-            // הוספת הרווח לטקסט (המעודכן או המקורי)
-            output.innerText = text + " ";
-            resetSearch();
         }
 
         updateDisplay();
