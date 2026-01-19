@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+
+<html lang="he" dir="rtl">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>מקלדת חצי-חצי</title>
+
+    <style>
+
+        body { font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background-color: #f0f0f0; }
+
+        #output { font-size: 3rem; margin-bottom: 20px; height: 1.2em; border-bottom: 2px solid #333; min-width: 200px; text-align: center; background: white; padding: 10px; border-radius: 10px; }
+
+        .container { display: flex; width: 90%; height: 60vh; gap: 20px; }
+
+        .half-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 2rem; cursor: pointer; border: none; border-radius: 20px; transition: transform 0.1s, background-color 0.3s; color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+
+        .right { background-color: #4CAF50; }
+
+        .left { background-color: #2196F3; }
+
+        .half-btn:active { transform: scale(0.95); }
+
+        .letters-display { font-size: 1.5rem; margin-top: 10px; word-break: break-all; opacity: 0.8; }
+
+        .reset-btn { margin-top: 20px; padding: 10px 20px; font-size: 1rem; cursor: pointer; border-radius: 5px; border: none; background: #666; color: white; }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div id="output"></div>
+
+    <div class="container">
+
+        <button id="btnRight" class="half-btn right" onclick="chooseHalf(0)">
+
+            <div>חצי ראשון</div>
+
+            <div id="displayRight" class="letters-display"></div>
+
+        </button>
+
+        <button id="btnLeft" class="half-btn left" onclick="chooseHalf(1)">
+
+            <div>חצי שני</div>
+
+            <div id="displayLeft" class="letters-display"></div>
+
+        </button>
+
+    </div>
+
+    <button class="reset-btn" onclick="resetSearch()">התחל אות חדשה</button>
+
+    <script>
+
+        const allLetters = ["א", "ב", "ג", "ד", "ה", "ו", "ז", "ח", "ט", "י", "כ", "ל", "מ", "נ", "ס", "ע", "פ", "צ", "ק", "ר", "ש", "ת"];
+
+        let currentRange = [...allLetters];
+
+        function updateDisplay() {
+
+            const mid = Math.ceil(currentRange.length / 2);
+
+            const rightHalf = currentRange.slice(0, mid);
+
+            const leftHalf = currentRange.slice(mid);
+
+            document.getElementById('displayRight').innerText = rightHalf.join(' ');
+
+            document.getElementById('displayLeft').innerText = leftHalf.join(' ');
+
+            if (currentRange.length === 1) {
+
+                document.getElementById('output').innerText += currentRange[0];
+
+                setTimeout(resetSearch, 500); // מאפס אוטומטית אחרי חצי שנייה שנבחרה אות
+
+            }
+
+        }
+
+        function chooseHalf(index) {
+
+            const mid = Math.ceil(currentRange.length / 2);
+
+            if (index === 0) {
+
+                currentRange = currentRange.slice(0, mid);
+
+            } else {
+
+                currentRange = currentRange.slice(mid);
+
+            }
+
+            updateDisplay();
+
+        }
+
+        function resetSearch() {
+
+            currentRange = [...allLetters];
+
+            updateDisplay();
+
+        }
+
+        updateDisplay();
+
+    </script>
+
+</body>
+
+</html>
