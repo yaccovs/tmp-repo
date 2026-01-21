@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מקלדת חצי-חצי רציפה</title>
+    <style>
+        body { 
+            font-family: Segoe UI, Arial, sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh; 
+            margin: 0; 
+            background-color: #f0f0f0; 
+            overflow: hidden; 
+        }
+
+        #output { 
+            font-size: 3rem; 
+            margin-bottom: 20px; 
+            height: 1.5em; 
+            border-bottom: 3px solid #333; 
+            min-width: 300px; 
+            text-align: center; 
+            background: white; 
+            padding: 15px; 
+            border-radius: 10px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            white-space: pre; 
+        }
+
+        .container { 
+            display: flex; 
+            width: 95%; 
+            height: 60vh; 
+            gap: 15px; 
+        }
+
+        .half-btn { 
+            flex: 1; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            cursor: pointer; 
+            border: none; 
+            border-radius: 15px; 
+            transition: transform 0.1s; 
+            color: white; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
+            padding: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* צבעים הדרגתיים נעימים לעין */
+        .right { background: linear-gradient(135deg, #4CAF50, #43A047); }
+        .left { background: linear-gradient(135deg, #2196F3, #1E88E5); }
+        
+        .half-btn:active { transform: scale(0.98); }
+
+        .letters-wrapper { 
+            display: flex;
+            flex-wrap: wrap; 
+            justify-content: center;
+            align-content: center;
+            gap: 10px; 
+            width: 100%;
+            height: 100%;
+        }
+
+        .char-span {
+            font-size: clamp(1.5rem, 11.5vw, 30rem);
+            font-weight: bold;
+            line-height: 1;
+            padding: 2px;
+        }
+
+        .action-span {
+            color: #FFEB3B; /* צהוב בולט */
+            background-color: rgba(0,0,0,0.2);
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: clamp(1rem, 2.5vw, 2rem);
+        }
+
+        .bottom-controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+            width: 90%;
+            justify-content: center;
+        }
+
+        .control-btn { 
+            padding: 15px 25px; 
+            font-size: 1.2rem; 
+            cursor: pointer; 
+            border-radius: 8px; 
+            border: none; 
+            color: white; 
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .btn-reset { background-color: #607D8B; flex: 1; }
+        .btn-delete-all { background-color: #D32F2F; flex: 1; }
+
+    </style>
+</head>
+<body>
+
+    <div id="output"></div>
+
+    <div class="container">
+        <button id="btnRight" class="half-btn right" onclick="chooseHalf(0)">
+            <div id="displayRight" class="letters-wrapper"></div>
+        </button>
+        <button id="btnLeft" class="half-btn left" onclick="chooseHalf(1)">
+            <div id="displayLeft" class="letters-wrapper"></div>
+        </button>
+    </div>
+
+    <div class="bottom-controls">
+        <button class="control-btn btn-reset" onclick="resetSearch()">התחל אות חדשה (איפוס)</button>
+        <button class="control-btn btn-delete-all" onclick="deleteAll()">מחק הכל</button>
+    </div>
+
+    <script>
+        // השינוי העיקרי: "רווח" בהתחלה, "מחק" בסוף
+        const baseItems = [
+            "רווח", 
+            "א", "ב", "ג", "ד", "ה", "ו", "ז", "ח", "ט", "י", "כ", 
+            "ל", "מ", "נ", "ס", "ע", "פ", "צ", "ק", "ר", "ש", "ת", 
+            "מחק"
+        ];
+        
+        const sofitMap = {
+            'מ': 'ם',
+            'נ': 'ן',
+            'צ': 'ץ',
+            'פ': 'ף',
+            'כ': 'ך'
+        };
+
+        let currentRange = [...baseItems];
+
+        function formatListToSpans(list) {
+            return list.map(item => {
+                if (item === "רווח" || item === "מחק") {
+                    return `<span class="char-span action-span">${item}</span>`;
+                }
+                return `<span class="char-span">${item}</span>`;
+            }).join('');
+        }
+
+        function updateDisplay() {
+            const mid = Math.ceil(currentRange.length / 2);
+            const rightHalf = currentRange.slice(0, mid);
+            const leftHalf = currentRange.slice(mid);
+
+            document.getElementById('displayRight').innerHTML = formatListToSpans(rightHalf);
+            document.getElementById('displayLeft').innerHTML = formatListToSpans(leftHalf);
+
+            if (currentRange.length === 1) {
+                handleSelection(currentRange[0]);
+            }
+        }
+
+        function handleSelection(item) {
+            const output = document.getElementById('output');
+            
+            if (item === "מחק") {
+                output.innerText = output.innerText.slice(0, -1);
+            } 
+            else if (item === "רווח") {
+                let text = output.innerText;
+                if (text.length > 0) {
+                    const lastChar = text[text.length - 1];
+                    if (sofitMap[lastChar]) {
+                        text = text.slice(0, -1) + sofitMap[lastChar];
+                    }
+                }
+                output.innerText = text + " ";
+            } 
+            else {
+                output.innerText += item;
+            }
+
+            setTimeout(resetSearch, 200);
+        }
+
+        function chooseHalf(index) {
+            const mid = Math.ceil(currentRange.length / 2);
+            if (index === 0) {
+                // בחירת החצי הראשון (הימני)
+                currentRange = currentRange.slice(0, mid);
+            } else {
+                // בחירת החצי השני (השמאלי)
+                currentRange = currentRange.slice(mid);
+            }
+            updateDisplay();
+        }
+
+        function resetSearch() {
+            currentRange = [...baseItems];
+            updateDisplay();
+        }
+
+        function deleteAll() {
+            if(confirm("למחוק את כל מה שנכתב?")) {
+                document.getElementById('output').innerText = "";
+                resetSearch();
+            }
+        }
+
+        updateDisplay();
+      // הוספת תמיכה במקשים חץ למעלה וחץ למטה
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "ArrowUp") {
+                event.preventDefault(); // מונע גלילה
+                document.getElementById('btnRight').click(); // "לוחץ" על הימני
+            } 
+            else if (event.key === "ArrowDown") {
+                event.preventDefault(); // מונע גלילה
+                document.getElementById('btnLeft').click(); // "לוחץ" על השמאלי
+            }
+        });
+    </script>
+</body>
+</html>
